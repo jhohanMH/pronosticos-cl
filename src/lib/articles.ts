@@ -86,6 +86,7 @@ const DEMO_ARTICLES: Article[] = [
 ]
 
 export async function getArticles(limit = 10): Promise<Article[]> {
+  if (!supabase) return DEMO_ARTICLES.slice(0, limit)
   try {
     const { data, error } = await supabase
       .from('articles')
@@ -104,6 +105,7 @@ export async function getArticles(limit = 10): Promise<Article[]> {
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
+  if (!supabase) return DEMO_ARTICLES.find(a => a.slug === slug) || null
   try {
     const { data, error } = await supabase
       .from('articles')
@@ -122,6 +124,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 }
 
 export async function getAllSlugs(): Promise<string[]> {
+  if (!supabase) return DEMO_ARTICLES.map(a => a.slug)
   try {
     const { data, error } = await supabase
       .from('articles')

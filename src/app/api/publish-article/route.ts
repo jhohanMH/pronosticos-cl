@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
     }
 
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 })
+    }
+
     const { data, error } = await supabase
       .from('articles')
       .upsert(article, { onConflict: 'slug' })

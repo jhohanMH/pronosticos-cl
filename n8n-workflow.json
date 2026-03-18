@@ -1,0 +1,154 @@
+{
+  "name": "PronosticosCL - Pipeline Diario",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "trigger",
+      "name": "Cron 7AM Chile (10 UTC)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d={{$now.format('yyyy-MM-dd')}}&s=Soccer",
+        "options": {}
+      },
+      "id": "fetch_fixtures",
+      "name": "Obtener Fixtures del Día",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const events = $input.first().json.events || [];\nconst ligasPermitidas = [\n  'Chilean Primera',\n  'Copa Libertadores',\n  'Copa Sudamericana',\n  'UEFA Champions League',\n  'English Premier League',\n  'Spanish La Liga'\n];\n\nconst filtered = events.filter(e => \n  ligasPermitidas.some(liga => \n    (e.strLeague || '').toLowerCase().includes(liga.toLowerCase())\n  )\n);\n\nreturn filtered.map(e => ({\n  json: {\n    idEvent: e.idEvent,\n    homeTeam: e.strHomeTeam,\n    awayTeam: e.strAwayTeam,\n    league: e.strLeague,\n    date: e.dateEvent,\n    time: e.strTime\n  }\n}));",
+        "options": {}
+      },
+      "id": "filter_leagues",
+      "name": "Filtrar Ligas Relevantes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{$env.ANTHROPIC_API_KEY}}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5-20251001\",\n  \"max_tokens\": 1500,\n  \"system\": \"Eres un experto en análisis deportivo y pronósticos de fútbol para el mercado latinoamericano. Escribes en español chileno natural, con autoridad pero accesible. Nunca suenas a robot. Nunca prometas ganancias ni garantices resultados. Siempre incluye disclaimer de juego responsable al final.\",\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Escribe artículo de pronóstico SEO-optimizado:\\n- Equipo Local: {{$json.homeTeam}}\\n- Equipo Visitante: {{$json.awayTeam}}\\n- Liga: {{$json.league}}\\n- Fecha: {{$json.date}}\\n- Hora Chile: {{$json.time}}\\n\\nEstructura:\\n1. Título H1 máximo 60 caracteres: Pronóstico {Local} vs {Visitante} — {Fecha}\\n2. Meta descripción máximo 155 caracteres\\n3. Introducción 100 palabras: contexto e importancia\\n4. Análisis Local 150 palabras: forma reciente, bajas, motivación\\n5. Análisis Visitante 150 palabras: ídem\\n6. H2H 100 palabras: historial\\n7. Predicción 100 palabras: resultado más probable con justificación\\n8. Cuotas 50 palabras: disponibles en Betano/1xBet, CTA natural\\n9. Disclaimer 30 palabras: +18. Las apuestas conllevan riesgo. Juega con responsabilidad.\\n\\nResponde SOLO en JSON válido, sin markdown ni backticks:\\n{\\\"titulo\\\": \\\"\\\", \\\"meta_descripcion\\\": \\\"\\\", \\\"slug\\\": \\\"\\\", \\\"contenido_html\\\": \\\"\\\", \\\"tags\\\": []}\"\n  }]\n}",
+        "options": {}
+      },
+      "id": "generate_article",
+      "name": "Generar Artículo con Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst text = response.content[0].text;\n\ntry {\n  const article = JSON.parse(text);\n  article.fecha = $input.first().json.date || new Date().toISOString().split('T')[0];\n  article.equipos = [$input.first().json.homeTeam, $input.first().json.awayTeam];\n  article.liga = $input.first().json.league;\n  return [{ json: article }];\n} catch(e) {\n  // Try to extract JSON from text\n  const match = text.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    const article = JSON.parse(match[0]);\n    article.fecha = new Date().toISOString().split('T')[0];\n    return [{ json: article }];\n  }\n  throw new Error('Failed to parse article JSON: ' + e.message);\n}",
+        "options": {}
+      },
+      "id": "parse_article",
+      "name": "Parsear Artículo JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SITE_URL}}/api/publish-article",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.PUBLISH_API_KEY}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "publish_article",
+      "name": "Publicar en PronosticosCL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.SITE_URL}}/api/revalidate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{$env.PUBLISH_API_KEY}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"path\": \"/pronosticos\"}",
+        "options": {}
+      },
+      "id": "revalidate",
+      "name": "Revalidar Cache",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 300]
+    }
+  ],
+  "connections": {
+    "Cron 7AM Chile (10 UTC)": {
+      "main": [
+        [{ "node": "Obtener Fixtures del Día", "type": "main", "index": 0 }]
+      ]
+    },
+    "Obtener Fixtures del Día": {
+      "main": [
+        [{ "node": "Filtrar Ligas Relevantes", "type": "main", "index": 0 }]
+      ]
+    },
+    "Filtrar Ligas Relevantes": {
+      "main": [
+        [{ "node": "Generar Artículo con Claude", "type": "main", "index": 0 }]
+      ]
+    },
+    "Generar Artículo con Claude": {
+      "main": [
+        [{ "node": "Parsear Artículo JSON", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parsear Artículo JSON": {
+      "main": [
+        [{ "node": "Publicar en PronosticosCL", "type": "main", "index": 0 }]
+      ]
+    },
+    "Publicar en PronosticosCL": {
+      "main": [
+        [{ "node": "Revalidar Cache", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

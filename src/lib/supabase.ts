@@ -1,9 +1,11 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Only create client if env vars are configured, otherwise null
+export const supabase: SupabaseClient | null =
+  supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
 export type Article = {
   id: string

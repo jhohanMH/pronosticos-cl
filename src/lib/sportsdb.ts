@@ -29,10 +29,15 @@ export async function getFixturesDelDia(fecha?: string): Promise<Fixture[]> {
   const date = fecha || new Date().toISOString().split('T')[0]
 
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
+
     const res = await fetch(
       `${BASE_URL}/eventsday.php?d=${date}&s=Soccer`,
-      { next: { revalidate: 300 } }
+      { next: { revalidate: 300 }, signal: controller.signal }
     )
+
+    clearTimeout(timeoutId)
 
     if (!res.ok) return []
 
