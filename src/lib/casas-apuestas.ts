@@ -53,27 +53,54 @@ export const CASAS_APUESTAS: CasaApuesta[] = [
   },
   {
     id: '3',
-    nombre: 'Coolbet',
-    slug: 'coolbet',
-    logo_url: '/coolbet-logo.svg',
-    rating: 4.3,
-    descripcion: 'Coolbet se distingue por su enfoque en el juego responsable y transparencia. Con una interfaz limpia y moderna, es ideal para quienes buscan una experiencia de apuestas sin complicaciones. Su compromiso con la responsabilidad la hace una opción confiable para el mercado chileno.',
+    nombre: 'Betcris',
+    slug: 'betcris',
+    logo_url: '/betcris-logo.svg',
+    rating: 4.4,
+    descripcion: 'Betcris es una de las casas de apuestas con más experiencia en el mercado latinoamericano. Con más de 35 años de trayectoria, ofrece una plataforma confiable con cobertura completa de fútbol sudamericano y las principales ligas europeas. Destaca por sus mercados de primera y segunda mitad y cuotas competitivas en formato americano.',
     pros: [
-      'Enfoque en juego responsable',
-      'Interfaz limpia y moderna',
-      'Sin requisitos de rollover',
-      'Buenas cuotas en fútbol'
+      'Más de 35 años de experiencia en LATAM',
+      'Excelente cobertura de fútbol sudamericano',
+      'Mercados específicos de mitades y goles',
+      'Plataforma estable y confiable',
+      'Cuotas competitivas en ligas principales'
     ],
     contras: [
-      'Menos mercados que la competencia',
-      'Opciones de pago limitadas'
+      'Cuotas en formato americano por defecto',
+      'Interfaz podría ser más moderna',
+      'Requiere login para ver cuotas'
     ],
-    link_afiliado: '#',
-    bono_texto: 'Consulta promociones vigentes en su sitio web',
+    link_afiliado: '[LINK_AFILIADO_BETCRIS]',
+    bono_texto: 'Consulta las promociones vigentes en la plataforma',
     deposito_minimo: '$5.000 CLP',
-    metodos_pago: ['Tarjeta de crédito/débito', 'Transferencia bancaria', 'WebPay'],
-    licencia: 'Licencia de Malta Gaming Authority',
-    featured: false,
+    metodos_pago: ['Tarjeta de crédito/débito', 'Transferencia bancaria', 'WebPay', 'Skrill'],
+    licencia: 'Licencia de operación en Costa Rica',
+    featured: true,
+  },
+  {
+    id: '4',
+    nombre: 'Bet365',
+    slug: 'bet365',
+    logo_url: '/bet365-logo.svg',
+    rating: 4.7,
+    descripcion: 'Bet365 es la casa de apuestas más grande del mundo por volumen de jugadores. Reconocida por su plataforma de apuestas en vivo líder en la industria, streaming deportivo integrado y una enorme variedad de mercados. Ofrece una experiencia premium con cuotas consistentemente competitivas en todos los deportes.',
+    pros: [
+      'Líder mundial en apuestas en vivo',
+      'Streaming deportivo gratuito integrado',
+      'Cuotas muy competitivas',
+      'Enorme variedad de mercados y deportes',
+      'Interfaz fluida y responsive'
+    ],
+    contras: [
+      'Proceso de verificación estricto',
+      'Restricciones de acceso en algunos países'
+    ],
+    link_afiliado: '[LINK_AFILIADO_BET365]',
+    bono_texto: 'Revisa las ofertas disponibles en la plataforma',
+    deposito_minimo: '$2.000 CLP',
+    metodos_pago: ['Tarjeta de crédito/débito', 'Transferencia bancaria', 'Skrill', 'Neteller', 'PayPal'],
+    licencia: 'Licencia UK Gambling Commission',
+    featured: true,
   }
 ]
 
